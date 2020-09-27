@@ -18,19 +18,21 @@ const Time = () => {
 	return new Date().toLocaleTimeString();
 };
 
-let client = 0;
+let database = [];
+
+app.get('/messages', (req, res) => {
+	res.send(database);
+});
 
 io.on('connection', (socket) => {
+	if (database.length === 100) database = [];
 	console.log('connect');
-	client++;
 	socket.on('join', ({ name, room }, callback) => {
 		socket.emit('message', {
 			user: 'Admin',
-			message: `${name},welcome to ${room}`,
+			message: `${name} welcome to ${room}`,
 			time: Time(),
-			count: client,
 		});
-
 		socket.broadcast.to(room).emit('message', {
 			user: 'Admin',
 			message: `${name} just joined.`,
@@ -46,9 +48,13 @@ io.on('connection', (socket) => {
 			time: Time(),
 		});
 		console.log(data);
+		database.push({
+			name: data.name[0],
+			message: data.message,
+			time: Time(),
+		});
 	});
 	socket.on('disconnect', (data) => {
-		client--;
 		socket.on('dis', (data) => {
 			console.log(data);
 		});
